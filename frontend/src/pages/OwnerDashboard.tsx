@@ -30,16 +30,16 @@ export default function OwnerDashboard() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!shopId) return;
-    refreshAll(shopId);
-  }, [shopId]);
-
   function refreshAll(id: string) {
     getShopById(id).then(setShop);
     listProducts(id).then(setProducts);
     listOrdersForShop(id).then(setOrders);
   }
+  useEffect(() => {
+    if (!shopId) return;
+    refreshAll(shopId);
+  }, [shopId]);
+
 
   async function handleAddProduct(data: { name: string; price: number; barcode: string }) {
     if (!shopId) return;

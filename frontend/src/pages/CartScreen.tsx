@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ChevronLeft, Minus, Plus, Trash2, ShoppingBag } from "lucide-react";
-import { useCart } from "../context/CartContext";
+import { useCart } from "../context/useCart";
 import { createOrder } from "../services/orderService";
 import { ApiError } from "../services/api";
 import Button from "../components/Button";

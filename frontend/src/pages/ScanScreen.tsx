@@ -7,7 +7,7 @@ import ProductFoundCard from "../components/ProductFoundCard";
 import CartBar from "../components/CartBar";
 import Button from "../components/Button";
 import { findByBarcode } from "../services/productService";
-import { useCart } from "../context/CartContext";
+import { useCart } from "../context/useCart";
 import type { Product } from "../types/product";
 
 // Demo barcodes for the seeded catalog — lets anyone try the flow without

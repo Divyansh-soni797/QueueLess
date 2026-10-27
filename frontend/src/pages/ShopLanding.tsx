@@ -15,8 +15,12 @@ export default function ShopLanding() {
 
   useEffect(() => {
     if (!shopId) return;
-    setStatus("loading");
+
+    let cancelled = false;
+
     getShopById(shopId).then((result) => {
+      if (cancelled) return;
+
       if (result) {
         setShop(result);
         setStatus("found");
@@ -24,6 +28,10 @@ export default function ShopLanding() {
         setStatus("not-found");
       }
     });
+
+    return () => {
+      cancelled = true;
+    };
   }, [shopId]);
 
   if (status === "loading") {

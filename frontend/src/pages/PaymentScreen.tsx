@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { CheckCircle2, XCircle, Smartphone } from "lucide-react";
 import { getOrder, updatePaymentStatus } from "../services/orderService";
-import { useCart } from "../context/CartContext";
+import { useCart } from "../context/useCart";
 import Button from "../components/Button";
 import type { Order } from "../types/order";
 
