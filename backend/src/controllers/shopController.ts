@@ -11,4 +11,8 @@ export const shopController = {
     const shop = await shopService.updateShop(req.params.shopId, req.body);
     res.json(shop);
   },
+  async createShop(req: Request, res: Response) {
+    const shop = await shopService.createShop(req.body);
+    res.status(201).json(shop);
+  },
 };

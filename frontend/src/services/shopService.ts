@@ -14,3 +14,12 @@ export async function getShopById(shopId: string): Promise<Shop | null> {
 export function updateShop(shopId: string, patch: Partial<Omit<Shop, "id">>): Promise<Shop> {
   return api.put<Shop>(`/shops/${shopId}`, patch);
 }
+export interface CreateShopInput {
+  name: string;
+  upiId: string;
+  tagline?: string;
+}
+
+export async function createShop(input: CreateShopInput): Promise<Shop> {
+  return api.post<Shop>("/shops", input);
+}

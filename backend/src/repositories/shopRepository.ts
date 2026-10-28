@@ -63,4 +63,27 @@ export const shopRepository = {
 
     return data ? toShop(data as ShopRow) : null;
   },
+  async create(shop: {
+    id: string;
+    name: string;
+    upiId: string;
+    tagline?: string;
+  }): Promise<Shop> {
+    const { data, error } = await supabase
+      .from("shops")
+      .insert({
+        id: shop.id,
+        name: shop.name,
+        upi_id: shop.upiId,
+        tagline: shop.tagline ?? "",
+      })
+      .select("*")
+      .single();
+
+    if (error) {
+      throw new Error(`Failed to create shop: ${error.message}`);
+    }
+
+    return toShop(data as ShopRow);
+  },
 };

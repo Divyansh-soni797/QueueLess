@@ -16,6 +16,8 @@ const DEMO_BARCODES = [
   { label: "Classic White Tee", code: "8901030794412" },
   { label: "Slim Fit Jeans", code: "8901030794429" },
   { label: "Cotton Hoodie", code: "8901030794436" },
+  { label: "Canvas Sneakers", code: "8901030794443" },
+  { label: "Formal Shirt", code: "8901030794444" },
 ];
 
 export default function ScanScreen() {
@@ -29,20 +31,32 @@ export default function ScanScreen() {
   const [manualCode, setManualCode] = useState("");
   const [lastCode, setLastCode] = useState<string | null>(null);
 
+
   async function handleDetected(code: string) {
     if (!shopId || status === "looking-up" || code === lastCode) return;
+
     setLastCode(code);
     setStatus("looking-up");
-    const product = await findByBarcode(shopId, code);
-    if (product) {
-      setFound(product);
-      setStatus("idle");
-    } else {
+
+    try {
+      const product = await findByBarcode(shopId, code);
+
+      if (product) {
+        setFound(product);
+        setStatus("idle");
+      } else {
+        setFound(null);
+        setStatus("not-found");
+        setTimeout(() => setStatus("idle"), 1800);
+      }
+    } catch (error) {
+      console.error("Product lookup failed:", error);
       setFound(null);
       setStatus("not-found");
       setTimeout(() => setStatus("idle"), 1800);
     }
   }
+
 
   function handleAdd() {
     if (!found) return;
@@ -106,22 +120,25 @@ export default function ScanScreen() {
         </AnimatePresence>
       </div>
 
-      <div className="mt-8">
-        <p className="font-num text-xs text-ink/40 uppercase tracking-widest mb-3">
-          Try the demo
-        </p>
-        <div className="flex flex-wrap gap-2">
-          {DEMO_BARCODES.map((d) => (
-            <button
-              key={d.code}
-              onClick={() => handleDetected(d.code)}
-              className="text-xs font-medium bg-mist rounded-full px-3 py-2 border border-line active:scale-95 transition-transform"
-            >
-              {d.label}
-            </button>
-          ))}
+      {shopId === "demo" && (
+        <div className="mt-8">
+          <p className="font-num text-xs text-ink/40 uppercase tracking-widest mb-3">
+            Try the demo
+          </p>
+
+          <div className="flex flex-wrap gap-2">
+            {DEMO_BARCODES.map((d) => (
+              <button
+                key={d.code}
+                onClick={() => handleDetected(d.code)}
+                className="text-xs font-medium bg-mist rounded-full px-3 py-2 border border-line active:scale-95 transition-transform"
+              >
+                {d.label}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       <CartBar
         itemCount={itemCount}
