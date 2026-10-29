@@ -10,6 +10,7 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.118.0",
     "cors": "^2.8.5",
+    "dotenv": "^18.0.9",
     "express": "^4.21.0",
     "razorpay": "^2.9.8"
   },
