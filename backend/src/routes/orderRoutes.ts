@@ -6,6 +6,10 @@ import { asyncHandler } from "../middleware/errorHandler.js";
 export const orderRoutes = Router();
 
 orderRoutes.post("/", asyncHandler(orderController.create));
+orderRoutes.post(
+  "/verify-payment",
+  asyncHandler(orderController.verifyRazorpayPayment),
+);
 orderRoutes.get("/:orderId", asyncHandler(orderController.getOrder));
 orderRoutes.patch("/:orderId/payment", asyncHandler(orderController.updatePaymentStatus));
 orderRoutes.get("/:orderId/receipt", asyncHandler(receiptController.getByOrderId));

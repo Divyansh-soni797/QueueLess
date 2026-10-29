@@ -1,3 +1,4 @@
+
 import { motion } from "framer-motion";
 import { Plus } from "lucide-react";
 import type { Product } from "../types/product";
@@ -15,21 +16,29 @@ export default function ProductFoundCard({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -8 }}
       transition={{ duration: 0.25, ease: "easeOut" }}
-      className="bg-mist rounded-[var(--radius-card)] p-5 flex items-center gap-4"
+      className="flex w-full min-w-0 items-center gap-3 rounded-[var(--radius-card)] bg-mist p-3 sm:gap-4 sm:p-5"
     >
-      <div className="w-14 h-14 rounded-xl bg-brand/10 flex items-center justify-center text-brand font-display font-bold text-lg shrink-0">
-        {product.name.charAt(0)}
+      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-brand/10 font-display text-lg font-bold text-brand sm:h-14 sm:w-14">
+        {product.name.charAt(0).toUpperCase()}
       </div>
-      <div className="flex-1 min-w-0">
-        <p className="font-display font-bold text-lg truncate">{product.name}</p>
-        <p className="font-num text-ink/60 text-sm">₹{product.price.toFixed(2)}</p>
+
+      <div className="min-w-0 flex-1">
+        <p className="break-words font-display text-base font-bold leading-snug sm:text-lg">
+          {product.name}
+        </p>
+
+        <p className="mt-1 font-num text-sm text-ink/60">
+          ₹{product.price.toFixed(2)}
+        </p>
       </div>
+
       <button
+        type="button"
         onClick={onAdd}
-        className="w-11 h-11 rounded-full bg-ink text-lime flex items-center justify-center shrink-0 active:scale-95 transition-transform"
+        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-ink text-lime transition-transform active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand sm:h-12 sm:w-12"
         aria-label={`Add ${product.name} to cart`}
       >
-        <Plus size={20} strokeWidth={2.5} />
+        <Plus size={21} strokeWidth={2.5} />
       </button>
     </motion.div>
   );

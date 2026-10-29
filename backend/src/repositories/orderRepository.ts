@@ -106,7 +106,21 @@ export const orderRepository = {
     if (error) throw new Error(`Failed to fetch order: ${error.message}`);
     return data ? toOrder(data as OrderRow) : null;
   },
+  async findRazorpayOrderId(orderId: string): Promise<string | null> {
+    const { data, error } = await supabase
+      .from("orders")
+      .select("razorpay_order_id")
+      .eq("id", orderId)
+      .maybeSingle();
 
+    if (error) {
+      throw new Error(
+        `Failed to fetch Razorpay order ID: ${error.message}`,
+      );
+    }
+
+    return data?.razorpay_order_id ?? null;
+  },
   async findByShop(shopId: string): Promise<Order[]> {
     const { data, error } = await supabase
       .from("orders")
@@ -119,7 +133,30 @@ export const orderRepository = {
     const rows = data as OrderRow[];
     return Promise.all(rows.map(toOrder));
   },
+  async setRazorpayOrderId(
+    orderId: string,
+    razorpayOrderId: string,
+  ): Promise<void> {
+    const { data, error } = await supabase
+      .from("orders")
+      .update({ razorpay_order_id: razorpayOrderId })
+      .eq("id", orderId)
+      .eq("payment_status", "PENDING")
+      .select("id")
+      .maybeSingle();
 
+    if (error) {
+      throw new Error(
+        `Failed to save Razorpay order ID: ${error.message}`,
+      );
+    }
+
+    if (!data) {
+      throw new Error(
+        "Order not found or is no longer pending payment.",
+      );
+    }
+  },
   async updatePaymentStatus(
     orderId: string,
     status: PaymentStatus,

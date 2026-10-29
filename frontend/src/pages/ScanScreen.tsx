@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
@@ -10,8 +11,6 @@ import { findByBarcode } from "../services/productService";
 import { useCart } from "../context/useCart";
 import type { Product } from "../types/product";
 
-// Demo barcodes for the seeded catalog — lets anyone try the flow without
-// a physical product on hand. Real deployments would remove this panel.
 const DEMO_BARCODES = [
   { label: "Classic White Tee", code: "8901030794412" },
   { label: "Slim Fit Jeans", code: "8901030794429" },
@@ -31,15 +30,23 @@ export default function ScanScreen() {
   const [manualCode, setManualCode] = useState("");
   const [lastCode, setLastCode] = useState<string | null>(null);
 
-
   async function handleDetected(code: string) {
-    if (!shopId || status === "looking-up" || code === lastCode) return;
+    const normalizedCode = code.trim();
 
-    setLastCode(code);
+    if (
+      !shopId ||
+      !normalizedCode ||
+      status === "looking-up" ||
+      normalizedCode === lastCode
+    ) {
+      return;
+    }
+
+    setLastCode(normalizedCode);
     setStatus("looking-up");
 
     try {
-      const product = await findByBarcode(shopId, code);
+      const product = await findByBarcode(shopId, normalizedCode);
 
       if (product) {
         setFound(product);
@@ -57,94 +64,141 @@ export default function ScanScreen() {
     }
   }
 
-
   function handleAdd() {
     if (!found) return;
+
     addProduct(found);
     setFound(null);
     setLastCode(null);
+    setManualCode("");
   }
 
   return (
-    <div className="min-h-screen bg-paper flex flex-col px-5 pt-5 pb-32">
-      <div className="flex items-center gap-3 mb-5">
-        <button
-          onClick={() => navigate(`/shop/${shopId}`)}
-          className="w-9 h-9 rounded-full bg-mist flex items-center justify-center shrink-0"
-          aria-label="Back"
-        >
-          <ChevronLeft size={20} />
-        </button>
-        <h1 className="font-display text-xl font-bold">Scan a product</h1>
-      </div>
-
-      {!manualMode && <BarcodeScanner onDetected={handleDetected} paused={!!found} />}
-
-      {manualMode && (
-        <div className="w-full aspect-square rounded-3xl bg-mist flex flex-col items-center justify-center gap-4 px-8">
-          <input
-            value={manualCode}
-            onChange={(e) => setManualCode(e.target.value)}
-            placeholder="Enter barcode number"
-            className="w-full text-center font-num text-lg bg-paper rounded-xl py-3 px-4 border border-line focus:border-brand outline-none"
-            inputMode="numeric"
-          />
-          <Button
-            onClick={() => manualCode.trim() && handleDetected(manualCode.trim())}
-            disabled={!manualCode.trim()}
+    <main className="min-h-screen min-h-dvh bg-paper px-4 pb-36 pt-4 sm:px-6 sm:pt-6">
+      <div className="mx-auto w-full max-w-2xl">
+        <header className="mb-5 flex items-center gap-3 sm:mb-6">
+          <button
+            type="button"
+            onClick={() => navigate(`/shop/${shopId}`)}
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-mist transition-colors hover:bg-line"
+            aria-label="Back to store"
           >
-            Look up product
-          </Button>
-        </div>
-      )}
+            <ChevronLeft size={21} />
+          </button>
 
-      <button
-        onClick={() => setManualMode((m) => !m)}
-        className="flex items-center justify-center gap-2 text-ink/60 text-sm mt-4 py-2"
-      >
-        <Keyboard size={16} />
-        {manualMode ? "Use camera instead" : "Enter barcode manually"}
-      </button>
-
-      {status === "not-found" && (
-        <p className="text-center text-coral text-sm mt-2">
-          No product found for that barcode.
-        </p>
-      )}
-
-      <div className="mt-5">
-        <AnimatePresence mode="wait">
-          {found && (
-            <ProductFoundCard key={found.id} product={found} onAdd={handleAdd} />
-          )}
-        </AnimatePresence>
-      </div>
-
-      {shopId === "demo" && (
-        <div className="mt-8">
-          <p className="font-num text-xs text-ink/40 uppercase tracking-widest mb-3">
-            Try the demo
-          </p>
-
-          <div className="flex flex-wrap gap-2">
-            {DEMO_BARCODES.map((d) => (
-              <button
-                key={d.code}
-                onClick={() => handleDetected(d.code)}
-                className="text-xs font-medium bg-mist rounded-full px-3 py-2 border border-line active:scale-95 transition-transform"
-              >
-                {d.label}
-              </button>
-            ))}
+          <div className="min-w-0">
+            <h1 className="font-display text-xl font-bold sm:text-2xl">
+              Scan a product
+            </h1>
+            <p className="mt-0.5 text-xs text-ink/50 sm:text-sm">
+              Scan the barcode to add an item to your cart.
+            </p>
           </div>
+        </header>
+
+        {!manualMode && (
+          <BarcodeScanner
+            onDetected={handleDetected}
+            paused={!!found}
+          />
+        )}
+
+        {manualMode && (
+          <form
+            className="flex w-full flex-col items-center gap-4 rounded-3xl bg-mist p-4 sm:p-8"
+            onSubmit={(event) => {
+              event.preventDefault();
+              if (manualCode.trim()) {
+                void handleDetected(manualCode.trim());
+              }
+            }}
+          >
+            <Keyboard size={28} className="text-brand" />
+
+            <p className="text-center text-sm text-ink/60">
+              Enter the barcode printed on the product.
+            </p>
+
+            <input
+              value={manualCode}
+              onChange={(event) => setManualCode(event.target.value)}
+              placeholder="Enter barcode number"
+              aria-label="Product barcode"
+              autoComplete="off"
+              inputMode="numeric"
+              className="min-h-12 w-full rounded-xl border border-line bg-paper px-4 py-3 text-center font-num text-base outline-none focus:border-brand"
+            />
+
+            <Button
+              type="submit"
+              disabled={!manualCode.trim() || status === "looking-up"}
+            >
+              {status === "looking-up" ? "Looking up..." : "Look up product"}
+            </Button>
+          </form>
+        )}
+
+        <button
+          type="button"
+          onClick={() => setManualMode((mode) => !mode)}
+          className="mt-3 flex min-h-11 w-full items-center justify-center gap-2 rounded-xl px-3 py-2 text-sm font-medium text-ink/60 transition-colors hover:bg-mist"
+        >
+          <Keyboard size={17} />
+          {manualMode ? "Use camera instead" : "Enter barcode manually"}
+        </button>
+
+        {status === "looking-up" && !manualMode && (
+          <p className="mt-3 text-center text-sm text-brand" role="status">
+            Looking up product...
+          </p>
+        )}
+
+        {status === "not-found" && (
+          <p className="mt-3 text-center text-sm text-coral" role="status">
+            No product found for that barcode. Try again.
+          </p>
+        )}
+
+        <div className="mt-5">
+          <AnimatePresence mode="wait">
+            {found && (
+              <ProductFoundCard
+                key={found.id}
+                product={found}
+                onAdd={handleAdd}
+              />
+            )}
+          </AnimatePresence>
         </div>
-      )}
+
+        {shopId === "demo" && (
+          <section className="mt-7 border-t border-line pt-5 sm:mt-8">
+            <p className="mb-3 font-num text-xs uppercase tracking-widest text-ink/40">
+              Try the demo
+            </p>
+
+            <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+              {DEMO_BARCODES.map((item) => (
+                <button
+                  key={item.code}
+                  type="button"
+                  onClick={() => void handleDetected(item.code)}
+                  disabled={status === "looking-up"}
+                  className="flex min-h-11 items-center justify-center rounded-xl border border-line bg-mist px-3 py-2 text-center text-xs font-medium leading-5 transition-colors hover:bg-line disabled:opacity-50 sm:px-4 sm:text-sm"
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+          </section>
+        )}
+      </div>
 
       <CartBar
         itemCount={itemCount}
         totalAmount={totalAmount}
         onView={() => navigate(`/shop/${shopId}/cart`)}
       />
-    </div>
+    </main>
   );
 }

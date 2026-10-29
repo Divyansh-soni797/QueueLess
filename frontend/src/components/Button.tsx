@@ -1,3 +1,4 @@
+
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -9,18 +10,23 @@ export default function Button({
   children,
   variant = "primary",
   className = "",
+  type = "button",
   ...rest
 }: ButtonProps) {
   const base =
-    "w-full py-4 px-6 rounded-2xl font-display font-bold text-base tracking-tight transition-transform active:scale-[0.98] disabled:opacity-50 disabled:active:scale-100";
+    "inline-flex min-h-12 w-full items-center justify-center rounded-2xl px-5 py-3.5 font-display text-base font-bold tracking-tight transition-colors active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand sm:px-6 sm:py-4";
 
   const styles =
     variant === "primary"
       ? "bg-ink text-lime hover:bg-brand-dark"
-      : "bg-mist text-ink border border-line hover:bg-line";
+      : "border border-line bg-mist text-ink hover:bg-line";
 
   return (
-    <button className={`${base} ${styles} ${className}`} {...rest}>
+    <button
+      type={type}
+      className={`${base} ${styles} ${className}`}
+      {...rest}
+    >
       {children}
     </button>
   );

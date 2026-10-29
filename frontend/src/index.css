@@ -36,7 +36,11 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-h1, h2, h3, h4, .font-display {
+h1,
+h2,
+h3,
+h4,
+.font-display {
   font-family: var(--font-display);
 }
 
@@ -49,10 +53,23 @@ h1, h2, h3, h4, .font-display {
    A glowing beam that sweeps across a container, used on the
    scanning screen, as a section divider, and as a loading motif. */
 @keyframes scan-sweep {
-  0% { transform: translateY(-4%); opacity: 0; }
-  10% { opacity: 1; }
-  90% { opacity: 1; }
-  100% { transform: translateY(104%); opacity: 0; }
+  0% {
+    transform: translateY(-4%);
+    opacity: 0;
+  }
+
+  10% {
+    opacity: 1;
+  }
+
+  90% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateY(104%);
+    opacity: 0;
+  }
 }
 
 .scan-line {
@@ -70,6 +87,7 @@ h1, h2, h3, h4, .font-display {
     animation: none;
     top: 50%;
   }
+
   * {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
@@ -79,4 +97,83 @@ h1, h2, h3, h4, .font-display {
 :focus-visible {
   outline: 2px solid var(--color-brand);
   outline-offset: 2px;
+}
+
+/* ---------------------------------------------------------
+   Mobile responsiveness foundation
+--------------------------------------------------------- */
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  width: 100%;
+  min-width: 320px;
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+
+body {
+  width: 100%;
+  min-width: 320px;
+  margin: 0;
+  overflow-x: hidden;
+}
+
+/* Prevent media from overflowing their containers */
+img,
+video,
+canvas,
+svg {
+  max-width: 100%;
+}
+
+/* Form controls should not overflow on narrow screens */
+input,
+select,
+textarea,
+button {
+  max-width: 100%;
+  font: inherit;
+}
+
+input,
+select,
+textarea {
+  min-width: 0;
+}
+
+/* Better touch interaction on phones */
+button,
+[role="button"],
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button {
+  touch-action: manipulation;
+}
+
+/* Respect device safe areas */
+.safe-area-bottom {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+
+.safe-area-top {
+  padding-top: env(safe-area-inset-top);
+}
+
+/* Avoid hover-only interactions on touch devices */
+@media (hover: none) {
+  button:hover {
+    transform: none;
+  }
+}
+
+/* Reduce unnecessary motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
 }

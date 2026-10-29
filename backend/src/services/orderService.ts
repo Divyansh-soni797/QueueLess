@@ -5,14 +5,21 @@ import { receiptService } from "./receiptService.js";
 import { AppError } from "../utils/AppError.js";
 import { generateId } from "../utils/token.js";
 import type { Order, OrderItem, PaymentStatus } from "../types/index.js";
-
+import { razorpayService } from "./razorpayService.js";
 interface CartLine {
   productId: string;
   quantity: number;
 }
 
 export const orderService = {
-  async createOrder(shopId: string, lines: CartLine[]): Promise<{ order: Order; upiLink: string }> {
+  async createOrder(
+    shopId: string,
+    lines: CartLine[],
+  ): Promise<{
+    order: Order;
+    upiLink: string;
+    razorpayOrder: { id: string; amount: number; currency: string };
+  }> {
     const shop = await shopService.getShop(shopId);
 
     if (!Array.isArray(lines) || lines.length === 0) {
@@ -47,12 +54,115 @@ export const orderService = {
       totalAmount,
       paymentStatus: "PENDING",
     });
+    const upiLink = buildUpiLink(
+      shop.upiId,
+      shop.name,
+      order.id,
+      totalAmount,
+    );
+    const razorpayOrder = await razorpayService.createOrder(
+      totalAmount,
+      order.id,
+    );
 
-    const upiLink = buildUpiLink(shop.upiId, shop.name, order.id, totalAmount);
+    await orderRepository.setRazorpayOrderId(
+      order.id,
+      razorpayOrder.id,
+    );
 
-    return { order, upiLink };
+    return {
+      order,
+      upiLink,
+      razorpayOrder: {
+        id: razorpayOrder.id,
+        amount: Number(razorpayOrder.amount),
+        currency: razorpayOrder.currency,
+      },
+    };
+
   },
+  async verifyRazorpayPayment(
+    orderId: string,
+    razorpayOrderId: string,
+    razorpayPaymentId: string,
+    razorpaySignature: string,
+  ): Promise<Order> {
+    const order = await orderRepository.findById(orderId);
 
+    if (!order) {
+      throw new AppError(404, "ORDER_NOT_FOUND", "Order not found.");
+    }
+
+    if (order.paymentStatus === "SUCCESS") {
+      return order;
+    }
+
+    if (order.paymentStatus !== "PENDING") {
+      throw new AppError(
+        400,
+        "ORDER_NOT_PENDING",
+        "This order is no longer awaiting payment.",
+      );
+    }
+
+    const savedRazorpayOrderId =
+      await orderRepository.findRazorpayOrderId(orderId);
+
+    if (
+      !savedRazorpayOrderId ||
+      savedRazorpayOrderId !== razorpayOrderId
+    ) {
+      throw new AppError(
+        400,
+        "RAZORPAY_ORDER_MISMATCH",
+        "Payment does not match this order.",
+      );
+    }
+
+    const signatureValid =
+      razorpayService.verifyPaymentSignature(
+        razorpayOrderId,
+        razorpayPaymentId,
+        razorpaySignature,
+      );
+
+    if (!signatureValid) {
+      throw new AppError(
+        400,
+        "INVALID_PAYMENT_SIGNATURE",
+        "Payment verification failed.",
+      );
+    }
+
+    const payment =
+      await razorpayService.fetchPayment(razorpayPaymentId);
+
+    if (
+      payment.order_id !== razorpayOrderId ||
+      payment.amount !== Math.round(order.totalAmount * 100) ||
+      payment.currency !== "INR" ||
+      payment.status !== "captured"
+    ) {
+      throw new AppError(
+        400,
+        "PAYMENT_NOT_CONFIRMED",
+        "Payment is not captured or the payment details do not match.",
+      );
+    }
+
+    const updated = await orderRepository.updatePaymentStatus(
+      orderId,
+      "SUCCESS",
+    );
+
+    if (!updated) {
+      throw new AppError(404, "ORDER_NOT_FOUND", "Order not found.");
+    }
+
+    await receiptService.createForOrder(updated);
+
+    return updated;
+  },
   async getOrder(orderId: string): Promise<Order> {
     const order = await orderRepository.findById(orderId);
     if (!order) throw new AppError(404, "ORDER_NOT_FOUND", "Order not found.");
@@ -69,20 +179,36 @@ export const orderService = {
    * would be driven by a payment gateway webhook, not a client call — see
    * README "Known Limitations".
    */
-  async updatePaymentStatus(orderId: string, status: PaymentStatus): Promise<Order> {
+  async updatePaymentStatus(
+    orderId: string,
+    status: PaymentStatus,
+  ): Promise<Order> {
+    // Block SUCCESS unless Razorpay payment is verified.
+    if (status === "SUCCESS") {
+      throw new AppError(
+        403,
+        "PAYMENT_VERIFICATION_REQUIRED",
+        "Successful payments must be verified through Razorpay.",
+      );
+    }
+
     const order = await orderRepository.findById(orderId);
-    if (!order) throw new AppError(404, "ORDER_NOT_FOUND", "Order not found.");
+
+    if (!order) {
+      throw new AppError(404, "ORDER_NOT_FOUND", "Order not found.");
+    }
 
     if (order.paymentStatus === "SUCCESS") {
-      // Already settled — do not allow flipping a successful payment.
       return order;
     }
 
-    const updated = await orderRepository.updatePaymentStatus(orderId, status);
-    if (!updated) throw new AppError(404, "ORDER_NOT_FOUND", "Order not found.");
+    const updated = await orderRepository.updatePaymentStatus(
+      orderId,
+      status,
+    );
 
-    if (status === "SUCCESS") {
-      await receiptService.createForOrder(updated);
+    if (!updated) {
+      throw new AppError(404, "ORDER_NOT_FOUND", "Order not found.");
     }
 
     return updated;

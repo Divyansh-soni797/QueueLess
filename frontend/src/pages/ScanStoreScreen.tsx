@@ -42,80 +42,96 @@ export default function ScanStoreScreen() {
   }
 
   return (
-    <main className="min-h-screen bg-paper px-5 pt-5 pb-10">
-      <header className="flex items-center gap-3 mb-8">
-        <button
-          onClick={() => navigate("/")}
-          className="w-9 h-9 rounded-full bg-mist flex items-center justify-center"
-          aria-label="Back"
-        >
-          <ChevronLeft size={20} />
-        </button>
-        <h1 className="font-display text-xl font-bold">Scan Store QR</h1>
-      </header>
+    <main className="min-h-screen min-h-dvh bg-paper px-4 pb-8 pt-4 sm:px-6 sm:pt-6">
+      <div className="mx-auto w-full max-w-2xl">
+        <header className="mb-7 flex items-center gap-3 sm:mb-8">
+          <button
+            type="button"
+            onClick={() => navigate("/")}
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-mist"
+            aria-label="Back to home"
+          >
+            <ChevronLeft size={21} />
+          </button>
+          <h1 className="font-display text-xl font-bold sm:text-2xl">
+            Scan Store QR
+          </h1>
+        </header>
 
-      <div className="max-w-md mx-auto">
-        <div className="text-center mb-6">
-          <div className="w-16 h-16 rounded-2xl bg-brand/10 text-brand flex items-center justify-center mx-auto mb-4">
-            <Store size={32} />
+        <section className="mx-auto w-full max-w-md">
+          <div className="mb-6 text-center">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-brand/10 text-brand">
+              <Store size={30} />
+            </div>
+
+            <h2 className="mb-2 font-display text-2xl font-bold sm:text-3xl">
+              Find your store
+            </h2>
+            <p className="text-sm leading-6 text-ink/60">
+              Scan the store's QueueLess QR code to start shopping.
+            </p>
           </div>
-          <h2 className="font-display text-2xl font-bold mb-2">
-            Find your store
-          </h2>
-          <p className="text-ink/60 text-sm">
-            Scan the store's QueueLess QR code to start shopping.
-          </p>
-        </div>
 
-        {!manualMode && (
-          <BarcodeScanner onDetected={openStore} />
-        )}
+          {!manualMode && <BarcodeScanner onDetected={openStore} />}
 
-        {manualMode && (
-          <div className="rounded-3xl bg-mist p-5">
-            <label className="block text-sm mb-2">Store ID or QR URL</label>
-            <input
-              value={storeCode}
-              onChange={(event) => {
-                setStoreCode(event.target.value);
-                setError("");
+          {manualMode && (
+            <form
+              className="rounded-3xl bg-mist p-4 sm:p-5"
+              onSubmit={(event) => {
+                event.preventDefault();
+                openStore(storeCode);
               }}
-              placeholder="e.g. demo"
-              className="w-full bg-paper rounded-xl py-3 px-4 border border-line outline-none focus:border-brand"
-            />
-            <Button
-              onClick={() => openStore(storeCode)}
-              disabled={!storeCode.trim()}
             >
-              Open Store
+              <label htmlFor="store-code" className="mb-2 block text-sm font-medium">
+                Store ID or QR URL
+              </label>
+
+              <input
+                id="store-code"
+                value={storeCode}
+                onChange={(event) => {
+                  setStoreCode(event.target.value);
+                  setError("");
+                }}
+                placeholder="e.g. demo"
+                autoComplete="off"
+                className="mb-4 min-h-12 w-full rounded-xl border border-line bg-paper px-4 py-3 text-base outline-none focus:border-brand"
+              />
+
+              <Button type="submit" disabled={!storeCode.trim()}>
+                Open Store
+              </Button>
+            </form>
+          )}
+
+          <button
+            type="button"
+            onClick={() => {
+              setManualMode((current) => !current);
+              setError("");
+            }}
+            className="mt-3 flex min-h-12 w-full items-center justify-center gap-2 rounded-xl px-3 py-2 text-sm text-ink/60"
+          >
+            <Keyboard size={17} />
+            {manualMode ? "Use camera instead" : "Enter store ID manually"}
+          </button>
+
+          {error && (
+            <p role="alert" className="mt-3 text-center text-sm leading-5 text-coral">
+              {error}
+            </p>
+          )}
+
+          <div className="mt-6 rounded-2xl border border-line p-4 sm:p-5">
+            <p className="mb-1 text-sm font-semibold">Testing the demo</p>
+            <p className="mb-3 text-sm leading-5 text-ink/60">
+              Open the existing demo store without scanning a QR code.
+            </p>
+            <Button onClick={() => openStore("demo")}>
+              Open Demo Store
             </Button>
           </div>
-        )}
-
-        <button
-          onClick={() => {
-            setManualMode((current) => !current);
-            setError("");
-          }}
-          className="w-full flex items-center justify-center gap-2 text-ink/60 text-sm mt-4 py-3"
-        >
-          <Keyboard size={16} />
-          {manualMode ? "Use camera instead" : "Enter store ID manually"}
-        </button>
-
-        {error && (
-          <p className="text-center text-coral text-sm mt-3">{error}</p>
-        )}
-
-        <div className="mt-6 p-4 rounded-2xl border border-line">
-          <p className="text-sm font-semibold mb-1">Testing the demo</p>
-          <p className="text-sm text-ink/60 mb-3">
-            You can open the existing demo store without a QR code.
-          </p>
-          <Button onClick={() => openStore("demo")}>
-            Open Demo Store
-          </Button>
-        </div>
+        </section>
       </div>
     </main>
   );

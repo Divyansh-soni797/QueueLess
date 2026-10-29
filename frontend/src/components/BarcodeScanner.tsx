@@ -28,10 +28,10 @@ export default function BarcodeScanner({
 
     let cancelled = false;
     let controls: IScannerControls | null = null;
-
-
-
     const reader = new BrowserMultiFormatReader();
+
+    setCameraError(null);
+    setReady(false);
 
     async function startScanner() {
       try {
@@ -41,7 +41,7 @@ export default function BarcodeScanner({
 
         if (devices.length === 0) {
           setCameraError(
-            "No camera was found. Enter the receipt token manually below.",
+            "No camera was found. Enter the product barcode manually instead.",
           );
           return;
         }
@@ -50,15 +50,16 @@ export default function BarcodeScanner({
           devices.find((device) => /back|rear|environment/i.test(device.label)) ??
           devices[0];
 
+        const video = videoRef.current;
+
+        if (!video) return;
+
         const startedControls = await reader.decodeFromVideoDevice(
           preferredCamera.deviceId,
-          videoRef.current!,
+          video,
           (result) => {
-            if (cancelled) return;
-
-            if (result) {
-              onDetectedRef.current(result.getText());
-            }
+            if (cancelled || !result) return;
+            onDetectedRef.current(result.getText());
           },
         );
 
@@ -77,15 +78,18 @@ export default function BarcodeScanner({
 
         if (name === "NotAllowedError" || name === "PermissionDeniedError") {
           setCameraError(
-            "Camera access was denied. Allow camera permission in your browser, or enter the receipt token manually.",
+            "Camera access was denied. Allow camera permission in your browser, or enter the product barcode manually.",
           );
-        } else if (name === "NotFoundError" || name === "DevicesNotFoundError") {
+        } else if (
+          name === "NotFoundError" ||
+          name === "DevicesNotFoundError"
+        ) {
           setCameraError(
-            "No camera was found. Enter the receipt token manually below.",
+            "No camera was found. Enter the product barcode manually instead.",
           );
         } else {
           setCameraError(
-            "Couldn't start the camera. Check browser permissions and try again, or enter the receipt token manually.",
+            "Couldn't start the camera. Check browser permissions and try again, or enter the product barcode manually.",
           );
         }
       }
@@ -102,29 +106,34 @@ export default function BarcodeScanner({
   }, [paused]);
 
   return (
-    <div className="relative w-full aspect-square rounded-3xl overflow-hidden bg-ink">
+    <div className="relative mx-auto aspect-[4/3] w-full max-w-xl overflow-hidden rounded-3xl bg-ink sm:aspect-square">
       <video
         ref={videoRef}
-        className="absolute inset-0 w-full h-full object-cover"
+        className="absolute inset-0 h-full w-full object-cover"
         muted
         playsInline
+        aria-label="Product barcode camera preview"
       />
 
       {cameraError && (
-        <div className="absolute inset-0 flex items-center justify-center px-8 text-center">
-          <p className="text-paper/80 text-sm">{cameraError}</p>
+        <div className="absolute inset-0 flex items-center justify-center px-5 py-6 text-center sm:px-8">
+          <p className="max-w-sm text-sm leading-6 text-paper/80">
+            {cameraError}
+          </p>
         </div>
       )}
 
       {!cameraError && !ready && (
-        <div className="absolute inset-0 flex items-center justify-center px-8 text-center">
-          <p className="text-paper/70 text-sm">Starting camera…</p>
+        <div className="absolute inset-0 flex items-center justify-center px-5 text-center">
+          <p className="text-sm text-paper/70" role="status">
+            Starting camera...
+          </p>
         </div>
       )}
 
       {ready && !paused && (
         <>
-          <div className="absolute inset-6 border-2 border-lime/70 rounded-2xl" />
+          <div className="pointer-events-none absolute inset-[10%] rounded-2xl border-2 border-lime/70" />
           <span className="scan-line" />
         </>
       )}
