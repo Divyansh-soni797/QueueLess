@@ -1,179 +1,365 @@
 # QueueLess
 
-A scan-and-pay checkout system for physical retail stores. Customers scan a
-store's QR, scan product barcodes as they shop, pay the store directly via
-UPI, and get a one-time-use digital receipt QR to show security on the way
-out — no billing counter queue required.
+**Scan. Shop. Pay. Go.**
 
-**Scan → Pay → Verify → Go**
+QueueLess is a mobile-first scan-and-pay checkout system designed for physical retail stores. Customers scan a store QR code, scan product barcodes while shopping, add products to their cart, complete payment through Razorpay, and receive a digital receipt QR code for verification at the store exit.
+
+The goal is to reduce time spent waiting at traditional billing counters.
+
+## 1. Problem Statement
+
+Traditional retail checkout requires customers to wait at billing counters, even when they have already selected their products and can make digital payments using their phones.
+
+During busy hours, this creates unnecessary queues and increases the time required to complete a shopping trip.
+
+## 2. Proposed Solution
+
+QueueLess provides an alternative checkout process through a mobile application.
+
+Customers can:
+- Scan a store's QR code to enter its digital shopping environment.
+- Scan product barcodes to find and add products to their cart.
+- View product details, quantities, and total prices.
+- Complete checkout using Razorpay.
+- Receive a digital receipt containing a QR code.
+- Present the receipt QR code to store security for verification.
+
+The store owner can manage products and view orders through the owner dashboard.
+
+## 3. Core Workflow
+
+```text
+CUSTOMER SCANS STORE QR
+          |
+          v
+     OPEN STORE
+          |
+          v
+   SCAN PRODUCT BARCODE
+          |
+          v
+      ADD TO CART
+          |
+          v
+    CREATE ORDER
+          |
+          v
+   RAZORPAY PAYMENT
+          |
+          v
+   PAYMENT VERIFICATION
+          |
+          v
+   GENERATE RECEIPT QR
+          |
+          v
+   SECURITY SCANS QR
+          |
+          v
+   BACKEND VERIFICATION
+          |
+          v
+     MARK RECEIPT USED
+          |
+          v
+        EXIT
+```
+
+## 4. Main Features
+
+### Customer Features
+- Store entry through QR codes.
+- Barcode-based product lookup.
+- Manual barcode entry as an alternative.
+- Shopping cart with quantity management.
+- Server-authoritative order pricing.
+- Razorpay payment integration.
+- Digital receipt generation.
+- Receipt verification at the store exit.
+
+### Store Owner Features
+- Store registration.
+- Store-specific QR code generation.
+- Product management.
+- Product barcode registration.
+- UPI payment configuration.
+- Order management through the owner dashboard.
+
+### Security Features
+- Unique receipt tokens.
+- Server-side payment verification.
+- Store-specific receipt validation.
+- Prevention of duplicate receipt usage.
+- Rejection of invalid or previously used receipts.
+
+## 5. System Architecture
+
+QueueLess is divided into two main applications.
+
+**Frontend**
+
+- React
+- Vite
+- TypeScript
+- Tailwind CSS v4
+- Framer Motion
+- React Router
+- Lucide React
+- ZXing browser scanner
+- qrcode.react
+
+**Backend**
+
+- Node.js
+- Express.js
+- TypeScript
+- Razorpay SDK
+- Supabase client
+
+### Backend Request Flow
+
+```text
+Client Request
+      |
+      v
+    Routes
+      |
+      v
+  Controllers
+      |
+      v
+   Services
+      |
+      v
+  Repositories
+      |
+      v
+  Data Storage
+```
+
+The backend handles order creation, payment verification, product lookup, and receipt validation.
+
+## 6. Technology Stack
+
+| Layer | Technology |
+|---|---|
+| Frontend | React + TypeScript |
+| Build Tool | Vite |
+| Styling | Tailwind CSS v4 |
+| Backend | Node.js + Express |
+| Language | TypeScript |
+| Barcode Scanning | ZXing |
+| QR Generation | qrcode.react |
+| Payments | Razorpay |
+| Database Integration | Supabase client |
+| Frontend Hosting | Vercel |
+| Backend Hosting | Render |
+
+## 7. Project Structure
+
+```text
+QueueLess/
+│
+├── frontend/
+│   ├── src/
+│   │   ├── components/
+│   │   ├── context/
+│   │   ├── hooks/
+│   │   ├── layouts/
+│   │   ├── pages/
+│   │   ├── services/
+│   │   └── index.css
+│   └── package.json
+│
+├── backend/
+│   ├── src/
+│   │   ├── controllers/
+│   │   ├── middleware/
+│   │   ├── repositories/
+│   │   ├── routes/
+│   │   └── services/
+│   └── package.json
+│
+└── README.md
+```
+
+## 8. Local Installation
+
+### Prerequisites
+
+- Node.js
+- npm
+- Git
+- Supabase project credentials
+- Razorpay test API credentials
+
+### Clone the Repository
+
+```bash
+git clone https://github.com/Divyansh-soni797/QueueLess.git
+
+cd QueueLess
+```
+
+### Backend Setup
+
+```bash
+cd backend
+npm install
+npm run dev
+```
+
+The backend runs locally on port `4000` by default.
+
+### Frontend Setup
+
+Open another terminal:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Vite will display the local frontend URL, usually:
+
+```text
+http://localhost:5173
+```
+
+## 9. Environment Variables
+
+Environment variables must be configured separately for local development and production.
+
+### Frontend
+
+Create `frontend/.env`:
+
+```env
+VITE_API_BASE_URL=http://localhost:4000/api
+VITE_RAZORPAY_KEY_ID=your_razorpay_key_id
+```
+
+### Backend
+
+Create `backend/.env`:
+
+```env
+SUPABASE_URL=your_supabase_url
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
+
+RAZORPAY_KEY_ID=your_razorpay_key_id
+RAZORPAY_KEY_SECRET=your_razorpay_key_secret
+```
+
+Never commit `.env` files or expose backend secrets in frontend code.
+
+## 10. Deployment
+
+QueueLess is deployed using separate frontend and backend hosting services.
+
+| Component | Platform |
+|---|---|
+| Frontend | Vercel |
+| Backend | Render |
+| Database integration | Supabase |
+| Payment gateway | Razorpay Test Mode |
+
+The frontend communicates with the deployed backend using:
+
+```text
+https://queueless-backend-yqc1.onrender.com/api
+```
+
+Set the following frontend environment variables in Vercel:
+
+```env
+VITE_API_BASE_URL=https://queueless-backend-yqc1.onrender.com/api
+VITE_RAZORPAY_KEY_ID=your_razorpay_test_key_id
+```
+
+Backend credentials must be configured in Render's environment variable settings.
+
+## 11. Payment and Receipt Verification
+
+QueueLess uses Razorpay for payment processing.
+
+The payment workflow includes:
+1. Creating an order through the backend.
+2. Initiating payment using Razorpay.
+3. Receiving the payment response.
+4. Verifying the payment signature on the backend.
+5. Updating the payment status.
+6. Generating a digital receipt QR code.
+
+The receipt QR code is intended to contain an opaque receipt token rather than trusted payment information.
+
+When security scans a receipt, the backend validates its existence, store association, payment status, and usage status.
+
+A previously used receipt must not be accepted again.
+
+**Note:** The current deployment uses Razorpay Test Mode. Real-money payment processing requires a separately configured production Razorpay account and live credentials.
+
+## 12. Testing
+
+The project has been manually tested for the following workflows:
+
+- Store registration and store QR generation.
+- Store lookup.
+- Product barcode lookup.
+- Manual barcode entry.
+- Cart quantity management.
+- Order creation.
+- Payment flow using Razorpay Test Mode.
+- Backend payment verification.
+- Digital receipt generation.
+- Receipt QR scanning.
+- Rejection of duplicate receipt scans.
+- Rejection of receipts associated with another store.
+- Mobile-responsive page layouts.
+
+Mobile camera scanning has been tested successfully. Laptop webcam scanning may be less reliable depending on camera focus and image quality.
+
+## 13. Current Limitations and Future Scope
+
+Potential improvements include:
+
+- Automated unit and integration testing.
+- Owner authentication and role-based access control.
+- Receipt expiration.
+- Better laptop webcam compatibility.
+- Improved error handling and network recovery.
+- Production payment configuration.
+- Database-level transaction guarantees for concurrent receipt verification.
+- Performance optimization and frontend code splitting.
+- Accessibility improvements.
+
+## 14. Project Objective
+
+QueueLess demonstrates how barcode scanning, QR-based identification, digital payments, and server-side receipt verification can be combined to create an alternative checkout experience for physical retail stores.
+
+The project focuses on reducing checkout friction while maintaining a verification process at the store exit.
 
 ---
 
-## 1. Problem
+**Project:** QueueLess
+**Repository:** https://github.com/Divyansh-soni797/QueueLess
+**Frontend:** React + Vite
+**Backend:** Node.js + Express
+**Deployment:** Vercel + Render
 
-Billing counter queues are one of the slowest parts of in-store retail
-shopping. Customers already carry a phone capable of scanning a barcode and
-paying — there's no technical reason checkout has to mean standing in line.
+### Database Architecture
 
-## 2. Solution
+QueueLess uses Supabase as its database layer for storing and managing application data. The backend communicates with Supabase through dedicated repository modules, keeping database operations separate from the main business logic.
 
-QueueLess lets a customer scan a store's entry QR, scan each product's
-barcode as they pick it up, pay the shop owner directly over UPI, and walk
-out — showing a one-time QR receipt to store security instead of a physical
-bill. The traditional counter still exists for anyone who wants it; QueueLess
-is an optional faster lane.
+The database contains five main tables: `shops`, `products`, `orders`, `order_items`, and `receipts`.
 
-## 3. Core user flow
+- **Shops:** Stores shop information such as name, logo URL, UPI ID, and tagline.
+- **Products:** Maintains product details, including barcode, name, price, and image URL. Products are associated with their respective shops.
+- **Orders:** Stores order information, total amount, payment status, and creation time.
+- **Order Items:** Contains individual products included in each order, along with their prices and quantities.
+- **Receipts:** Stores receipt tokens, associated order and shop IDs, payment status, and exit verification status.
 
-```
-STORE QR → SCAN PRODUCT → ADD TO CART → PAY VIA UPI →
-DIGITAL RECEIPT → SECURITY SCANS RECEIPT → BACKEND VERIFICATION →
-MARK USED → EXIT
-```
+Two PostgreSQL database functions support important operations. The `create_order_with_items` function handles order creation along with its associated items. The `verify_and_consume_receipt` function checks a receipt against the shop and updates its usage status to prevent repeated verification.
 
-There is no customer signup, login, or OTP anywhere in this flow.
-
-## 4. Architecture
-
-Two independent apps:
-
-```
-frontend/   React + Vite + TypeScript + Tailwind, mobile-first
-backend/    Node + Express + TypeScript, layered architecture
-```
-
-Backend request flow:
-
-```
-Route → Controller → Service → Repository → Data store
-```
-
-Business logic lives in services; controllers only translate HTTP ↔ service
-calls; repositories are the only layer that knows how data is actually
-stored (see "Known limitations" — this is the seam where a real database
-would plug in).
-
-## 5. Database design
-
-Conceptually, five entities:
-
-- **shops** — id, name, upiId, tagline
-- **products** — id, shopId, barcode, name, price
-- **orders** — id, shopId, items[], totalAmount, paymentStatus, createdAt
-- **order_items** — embedded in orders here (see limitations)
-- **receipts** — id, receiptToken, orderId, shopId, paymentStatus,
-  exitStatus (UNUSED/USED), createdAt, usedAt
-
-## 6. Payment approach
-
-QueueLess never holds customer money. Checkout builds a standard UPI deep
-link (`upi://pay?pa=...&pn=...&am=...`) straight to the store's own UPI ID,
-the same as any peer-to-peer UPI transfer. Payment status is tracked as
-`PENDING → SUCCESS | FAILED | CANCELLED`.
-
-## 7. Receipt verification & security
-
-This is the part that actually has to be correct:
-
-- The QR code only ever contains an opaque, cryptographically random
-  receipt token — never a "PAID" flag, never order details.
-- Verification is entirely server-side. The backend looks up the token and
-  independently checks: does it exist, does it belong to this shop, was
-  payment actually confirmed, has it already been used. The client's or
-  QR's own claims are never trusted.
-- Marking a receipt USED happens in the same atomic step as the validity
-  check (no `await` between reading and writing), so two security guards
-  scanning the same receipt at the same instant cannot both get a valid
-  result. This was tested directly — see "Known limitations" for the
-  concurrency caveat that still applies with a real multi-process database.
-
-## 8. Tech stack
-
-**Frontend:** React, Vite, TypeScript, Tailwind CSS v4, Framer Motion,
-Lucide React, React Router, @zxing/browser (barcode/QR scanning),
-qrcode.react (QR generation)
-
-**Backend:** Node.js, Express, TypeScript
-
-**Data:** in-memory (see limitations)
-
-## 9. Running it locally
-
-```bash
-# Backend
-cd backend
-npm install
-npm run dev        # http://localhost:4000
-
-# Frontend (separate terminal)
-cd frontend
-npm install
-npm run dev         # http://localhost:5173
-```
-
-The frontend reads the backend URL from `frontend/.env`
-(`VITE_API_BASE_URL`), already set to `http://localhost:4000/api`.
-
-Try it at `/shop/demo`. Demo barcodes are on the scan screen so you can try
-the full flow without a physical product or a working camera. The owner
-dashboard is at `/shop/demo/owner` and the security check-in at
-`/shop/demo/verify` (linked from the landing page for demo purposes only —
-see limitations).
-
-## 10. Known limitations
-
-This is a portfolio-scale prototype. Being upfront about what's simplified:
-
-- **Data store is in-memory, not Supabase/PostgreSQL.** Every repository
-  method is written the way a real DB-backed repository would be (async,
-  returns plain objects), so swapping the inside of each `repositories/*.ts`
-  file for real Supabase queries shouldn't require touching services or
-  controllers. Restarting the backend wipes all data.
-- **Payment confirmation is manual, not gateway-verified.** There's no real
-  UPI payment gateway integration here — the "I've completed the payment"
-  button on the payment screen is what a real webhook/callback from a UPI
-  PSP would trigger in production. This is a known, disclosed limitation of
-  the prototype, not a bug — see the note directly on the payment screen.
-- **Owner dashboard has no authentication.** Anyone with the URL can edit a
-  store's products and UPI ID. Fine for a demo; not fine for production —
-  a real deployment needs owner login before this ships.
-- **Atomicity holds for a single Node process,** which is what's running
-  here. A production deployment with a real database and multiple server
-  instances would need the equivalent atomic guarantee enforced at the
-  database layer (e.g. a single conditional UPDATE with `WHERE exit_status
-  = 'UNUSED'` checked via the returned row count), not just in application
-  code.
-- **No `shopping_sessions` table.** The cart lives as client-side state
-  (sessionStorage) until checkout creates a real order; this was simpler
-  than modeling an intermediate session entity and doesn't lose anything a
-  customer would notice.
-- **The security check-in and store dashboard links on the customer landing
-  page are demo-only conveniences.** In production, staff and owners would
-  be given those URLs directly rather than having them discoverable from
-  the customer-facing page.
-
-## 11. Testing performed
-
-Verified manually end-to-end (see conversation for screenshots): shop
-landing (found + not-found states), barcode → product lookup against the
-real backend, cart quantity management, order creation with
-server-authoritative pricing, UPI link generation, payment state
-transitions, receipt QR generation, and the full security verification loop
-— including confirming a second scan of the same receipt is correctly
-rejected as `ALREADY_USED`, and a receipt scanned at the wrong shop is
-rejected as `WRONG_SHOP`.
-
-Not yet covered: automated test suite, expired-receipt handling (no
-expiry concept exists yet), network-failure UI states beyond basic error
-messages, and accessibility audit beyond basic focus states and aria
-labels.
-
-## 12. Future improvements
-
-- Real Supabase/PostgreSQL persistence
-- Real UPI payment gateway webhook integration
-- Owner authentication
-- Receipt expiry
-- Automated tests (unit + integration)
-- Deployment (Vercel for frontend, Render/Railway for backend, Supabase for
-  data — not yet done)
+The backend uses repository modules to perform database operations. This approach separates data access from application logic and makes the codebase easier to maintain.
